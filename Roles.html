@@ -1,0 +1,43 @@
+<html lang="pt-br">
+    <head>
+        <title>Roles</title>
+        <meta charset="utf-8">
+        <meta name="description" content="Este é um site de estudos sobre Roles no DB2.">
+    </head>
+    <body>
+        <h1>Roles - DB2</h1>
+        <p>As roles funcionam para simplificar a <strong>administração</strong> e o <strong>gerenciamento de privilégios à usuários</strong>, oferecendo uma capacidade equivalente a grupos, porém sem as mesmas restrições, ou seja, a role é um objeto no banco que agrupo um ou mais privilégios de usu´rios, podendo ser atribuída a N usuários, bastando inseri-los em um grupo em que a role está presente. As roles oferecem várias vantagens que facilitam o gerenciamento de privilégios em um sistema de banco de dados, onde:</p>
+        <ul>
+            <li>Os administradores podem controlar o acesso aos seus bancos de uma maneira que espelha a estrutura de suas organizações.</li>
+            <li>O fácil manipulamento para conceder ou negar permissões.</li>
+            <li>Simplificação de grant's, ois ao invés de conceder a mesma permissão a N usuários, basta inseri-los numa mesma role que contêm tal permissão.</li>
+            <li>É possível delegar o gerenciamento de uma role para outras.</li>
+            <li>Todos os privilégios podem ser armazenados em uma role.</li>
+        </ul>
+        <p><strong>OBS: É possível delegar o gerenciamento da role para outro usuários, podendo o mesmo controlar a associação da funçlção.</strong></p>
+        <p>Porém, existem uma restrição na criação de role, onde a mesma <strong>não pode possuir objetos.</strong></p>
+        <p>O DBA tem autoridade para criar, decartar, conceder, revogar e comentar uma role, utilizando do <strong>GRANT</strong> para conceder a participação em uma role à uma ID ou <strong>REVOKE</strong> para negar.</p>
+        <p>Após a criação da role, é possível usar do <strong>GRANT</strong> para atribuir autoridades/privilégios à role., como por exemplo:</p>
+        <ol>
+            <li>Criação da role</li>
+                <pre>
+                <strong>CREATE ROLE</strong> <i>name</i>
+                </pre>
+            <li>Concedimentos a role</li>
+                <pre>
+                <strong>GRANT</strong> <i>privilegio</i> <strong>ON TABLE</strong> <i>objeto</i> <strong>TO ROLE</strong> <i>name</i>
+                </pre>
+            <li>Atribuir usuários à role</li>
+                <pre>
+                <strong>GRANT ROLE</strong> <i>name</i> <strong>TO USER</strong> <i>usuário</i>
+                </pre>
+            <li>Retirar usuários à role</li>
+                <pre>
+                <strong>REVOKE ROLE</strong> <i>name</i> <strong>TO USER</strong> <i>usuário</i>
+                </pre>
+        </ol>
+        <p>De forma a facilitar ainda mais a administração de permissões, é possível também conceder a uma role, todos os privilégios de outra role, o que é chamado de <strong>hierarquia das roles</strong>. Imagens que na role X é concedido osprivilégios A e B, já na role Y são concedidos os privilégiosda role X e os privilégios C e D. Realizado pelo comando:</p>
+        <pre>
+            <strong>GRANT ROLE</strong> <i>role 1</i> <strong>TO ROLE</strong> <i>role 2</i>
+        </pre>
+    </body>    
