@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+
+<html lang="pt-br">
+    <head>
+        <meta charset="utf-8">
+        <title>Introdução -  DB2</title>
+        <meta name="description" content="Este é um site referênte à estudos de DB2">
+    </head>
+    
+    <body>
+        <ul>
+            <li><strong>O que é?</strong></li>
+                <p>O DB2 é um sistema gerenciador de banco de dados (SGBD) desenvolvido pela IBM, possuindo seu próprio tipo de linguagem SQL e restrições, assim como seus erros e acertos em relação ao desenvolvimento do banco em sí. Assim como nas linguagens de programação, onde o conceito de estrutura e lógica seguem exatamente a mesma linha de raciocínio. Em bancos de dados relacionais, o funcionamento é exatamente o mesmo, onde independente do SGBD, a lógica é a mesma, mudando apenas a sintaxe. Logo, é possível concluir que tendo conhecimentos sobre linguagem SQL e conceitos de bancos de dados, basta apenas entender as sintaxes exigidas pelo mesmo.</p>
+                <p>Algo que deve ser chamado atenção no DB2, é que seu coração está inteiramente mesclado ao <strong>Linux</strong>, de forma que para ter um máximo de desempenho e aproveitamento do DB2, o mesmo é preciso estar relacionado e usado pelo sistema operacional Linux. Diante disso, é importante compreender que muitos de seus comandos são realizados via shell e bash no Linux (caso seja de desjo, é possível também usar inteiramente o banco através dessas ferramentas), sendo a outra metade de seus comandos realizada através de algum software que permita a interação com o banco diretamente, como o <strong>DBVisualizer e o DBeaver</strong>.</p>
+                <p>Para os comandos via shell, eles sempre devem possuir o prefixo <strong>db2</strong> para que o Linux entenda que tal ação, será realizada dentro do banco e não em seu sistema operacional, mesmo que as exibições sejam também via shell, como no exemplo abaixo, para fazer conexão com uma base:</p>
+                <pre>
+            <strong>db2 connect to </strong> <i>BASEDB2</i>
+                </pre>
+                <p>Para mais informações, visite o site oficial da IBM sobre os assuntos e dúvidas relacionados ao DB2:</p>
+                <a href="https://www.ibm.com/support/knowledgecenter/SSEPGG_11.5.0/com.ibm.db2.luw.welcome.doc/doc/welcome.html">
+                    DB2 - IBM Developer
+                </a>
+            <hr>
+            <li><strong>Conexão do DB2</strong></li>
+                <p>Antes de tudo, é indicado a orientação de download e instalação do DB2 (no Linux), assim como a análise se sua máquina suporta os exigências do bando, como <strong>requisitos de instalção, memória e disco</strong>. Após isso, será preciso que o usuário esteja como <strong>user root</strong> em seu sistema, o usuário de maior poder no sistema. Para realizar o download do DB2, visite o site <a href="https://www.ibm.com/account/reg/ca-en/signup?formid=urx-33669"> Download DB2 </a> e insira os dados solicitados. Localize a opção <i>IBM DB2 for Linux</i> na página downloads e clique no link <strong>Download Agora</strong>.</p>
+                <p>Após baixar o pack do DB2, torne-se um usuário root pelo comando <strong>su - root</strong> e insira a senha root. Feito isso, é necessário criar um diretório específico para a instalação do DB2 com o nome de <strong>software</strong> no diretório <strong>home</strong> e migre o arquivo baixado do pack de DB2 para o novo diretório criado. Diante disso, será preciso extrair e descompactar o arquivo através dos comandos abaixo:</p>
+                <pre>
+            <strong>gunzip *.gz
+            tar -xvf</strong> v11.5_linuxx64_dec.tar
+                </pre>
+                <p>e exclua o arquivo <strong>.TAR</strong> criado. Será preciso agora, tornar o subdiretório <strong>server_dec</strong> acessível a todos os usuários do sistema (<strong>chmod 777</strong>) e em seguida, executar os comandos para renomear o subdiretório criado para <strong>ibm-db2</strong>. Após essas etapas serem realizadas, será necessário executar os comandos de verificação se o servidor possui tudo necessário para instalar e executar o DB2, pelo comando:</p>
+                <pre>
+            <strong>./</strong>db2prereqcheck <strong>-v 11.5.0.0s</strong>
+                </pre>
+                <p>Caso todas as exigências sejam atendiadas, a seguinte mensagem será exibida: <i>DBT3533I The db2prereqcheck utility has confirmed that all installation prerequisites were met.</i> , caso ela não seja apresentada, revise a saída do utilitário <strong>db2prereqchek</strong> e resolva os problemas.</p>
+                <p>Feito todos os procedimentos relatados acima com sucesso, será possível executar o <strong>./db2setup</strong> para carregar e iniciar o programa de instalçao do DB2 e siga os passos abaixo para a instalção:</p>
+                <ol>
+                    <li>Na janela <i>Bem-vindo</i>, clique na opção <strong>Nova Instalção</strong>;</li>
+                    <br>
+                    <li>Selecione a opção <strong>DB2 Versão 11.5.0.0 Server Editions</strong> e vá para a próxima janela;</li>
+                    <br>
+                    <li>Clique em <strong>click to view</strong> para visualizar os termos da IBM e concorde com os termos exigidos;</li>
+                    <br>
+                    <li>Digite uma senha para o propietário da instância default <strong>db2inst1</strong> (O nome de usuário e a senha do propietário da instância fornecidos são o ID do usuário e a senha que vpcê usará para trabalhar om o DB2).</li>
+                    <br>
+                    <li>Digite uma senha para o usuário protegido do DB2 <strong>db2fenc1</strong>, sendo este usuário é usado para executar dunções definidas pelo usuário e procedimentos armazenados fora do espaço de endereço usado por um banco de dados DB2.</li>
+                    <br>
+                    <li>Verifique se a opção <strong>install DB2 server edition on this computer and sabe mu settings in a response file</strong> está selecionada.</li>
+                    <br>
+                    <li>Por fim, basta concluir e iniciar a instalção</li>
+                </ol>
+            <li><strong> Verificando a instalação</strong></li>
+                <p>Para verificar e ter certeza de que a instalçao foi concluída com sucesso, será possível realizar testes na mesma com comandos SQL, como por exemplo criando um banco e exibindo dados dele. Sempre que estiver em um DB2 local, deve-se primeiro dar um comando de iniciação do mesmo, por <strong>db2start</strong>. Por default, o DB2 possui um banco inicial para testes, precisando apenas starta-lo pelo comando <strong>db2samp1</strong>, este banco é chamado de <i>SAMPLE</i>, sendo catalogado automaticamante com o alias de do banco default <i>SAMPLE</i>.</p>
+                <p>Feito isso, conecte-se ao banco (procedimento esse, necessário para conectar em toda e qualquer base DB2) pelo comando: </p>
+                <pre>
+            <strong>db2 connect to</strong> <i>sample</i>
+            <strong>select</strong> * <strong>from</strong> staff <strong>where</strong> dept = 20
+                </pre>
+                <p>Caso a tabela abaixo seja exibida, significa que todos os procedimentos, testes e verificações foram executas com sucesso, tornando o DB2 pronto para uso!</p>
+                <pre>
+            ID   NAME      DEPT   JOB   YEARS  SALARY    COMM
+            ---- --------- ------ ----- ------ --------  ---------
+              10 Sanders       20 Mgr        7  98357.50        -
+              20 Pernal        20 Sales      8  78171.25   612.45
+              80 James         20 Clerk      -  43504.60   128.20
+             190 Sneider       20 Clerk      8  34252.75   126.50
+
+            4 record(s) selected.
+                </pre>
+        </ul>
+    </body>
+</html>

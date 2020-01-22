@@ -1,0 +1,37 @@
+<html lang="pt-br">
+    <head>
+        <title>WLM</title>
+        <meta charset="utf-8">
+        <meta name="description" content="Este é um site de estudos sobre WLM's no DB2.">
+    </head>
+    <body>
+        <h1>WLM - DB2</h1>
+        <p> No BD2 há uma forma de criar uma monitoração que executa uma ação através de parâmetros definidos pelo DBA. Este é um procedimento com o uso de várias funções do DB2. sendo eles:</p>
+        <ul>
+            <li><strong>Threshould</strong></li>
+                <p> Usados para <strong>monitorar</strong> o uso de armazenamento do Banco de dados. Podendo definir <i>threshoulds</i> de aviso/alerta. Por exemplo, se um object storage exceder os níveis ou limimites definidos, um <strong>sinalizador</strong> será exibido.</p>
+                <p>Quando uma database é criada, automaticamente são incrementadas nele, as <strong>default threshoulds</strong> para seus objetos. Sendo possível sobrescreve-los, fornecendo valores específicos para qualque um dos objetos. Neste contexto, são monitorados 3 tipos de limites, sendo eles:</p>
+                <ol>
+                    <strong><li>Space Usage</li></strong>
+                        <p>Ou <strong>uso de espaço</strong>, mede a porcentagem de espaço de armazenamento disponível, usado por um objeto (monitorado por <strong>tablespaces</strong>), representado como uma porcentagem do armazenamento total.</p>
+                    <strong><li>Data Skew</li></strong>
+                        <p>Ou <strong>Distorção de dados</strong>, mede a distribuição de ddos, medindo o desvio de um objeto do nível médio de dados (monitorado por <strong>tables/databases partitions</strong>).</p>
+                    <strong><li>Cluster Ratio</li></strong>
+                        <p>Ou <strong>taxa e cluster</strong>, mede o grau em que as linhas em uma tabela são organizadas na mesma ordem especificada por um determinado índice, onde uma alta porporção de cluster, indica que as linhas de dados são <strong>armazenadas na mesma sequência física</strong>. Já se há uma baixa proporção, é indicado que são <strong>armazenados em uma sequência física diferente.</strong></p>
+                </ol>
+            <li><strong>Event Monitor</strong></li>
+                <p>Retornam informações de eventos especificados pelo DBA, ou seja, funciona como uma captura de determinadas informações desejadas. Estes eventos são gerados por <strong>instruções de DML</strong>. Além disso, 3 passos básicos são seguidos (I - <strong>Criação, II - Habilitação, III - Acesso</strong>).</p>
+            <li><strong>Service Class</strong></li>
+                <p>Gerenciamento das funções do <strong>workload e do threshould</strong>.</p>
+        </ul>
+        <p>Logo, os passos a serem seguidos, são os seguintes:</p>
+        <ol>
+            <strong><li>Criação da tablespace para armazenar os dados do event monitor (Bufferpool + Tablespace)</li></strong>
+            <strong><li>Criação do event monitor</li></strong>
+            <strong><li>Habilitação do event monitor</li></strong>
+            <strong><li>Criação do service class e workload</li></strong>
+            <strong><li>Criação do threshould</li></strong>
+        </ol>
+    </body>
+    
+<html>    
