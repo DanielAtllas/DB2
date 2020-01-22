@@ -49,6 +49,7 @@
                     <br>
                     <li>Por fim, basta concluir e iniciar a instalção</li>
                 </ol>
+            <br>
             <li><strong> Verificando a instalação</strong></li>
                 <p>Para verificar e ter certeza de que a instalçao foi concluída com sucesso, será possível realizar testes na mesma com comandos SQL, como por exemplo criando um banco e exibindo dados dele. Sempre que estiver em um DB2 local, deve-se primeiro dar um comando de iniciação do mesmo, por <strong>db2start</strong>. Por default, o DB2 possui um banco inicial para testes, precisando apenas starta-lo pelo comando <strong>db2samp1</strong>, este banco é chamado de <i>SAMPLE</i>, sendo catalogado automaticamante com o alias de do banco default <i>SAMPLE</i>.</p>
                 <p>Feito isso, conecte-se ao banco (procedimento esse, necessário para conectar em toda e qualquer base DB2) pelo comando: </p>
@@ -67,6 +68,28 @@
 
             4 record(s) selected.
                 </pre>
+            <hr>
+            <li><strong>Conexão do DB2 com o DBVisualizer</strong></li>
+                <p>Existem inúmeros softwares de conexão direta com um banco de dados, cabendo o usuário decidir aquele que mais lhe atende. Neste conceito, usaremos do DBVisualizer que é um dos mais utilizados em relação ao DB2. Após baixar o software e instalá-lo em sua máquina, abra-o e siga os seguintes passos:</p>
+                <ol>
+                    <li>Após abrir o programa, será preciso fazer uma conexão com alguma base. Para isso, vá na opção <strong>create new database connection</strong> e uma janela com a solicitação de conexão <strong>wizard</strong> será solicita, escolha a opção <strong>use wizard</strong>. Após isso, uma outra janela será exibida solicitando o <strong>nome da base</strong> que será feita a conexão e logo em seguida será solicitado o sitema gerenciado da tal base (DB2 nesse caso).</li>
+                    <br>
+                    <li>Realizado o passo acima, uma série de dados serão exigidos para que a conexão prossiga, dentre eles, será preciso informar:</li>
+                    <br>
+                    <ol>
+                        <li>Server Database - Servidor onde está localizada a base.</li>
+                        <br>
+                        <li>Database Port - Porta de conexão com a base.</li>
+                        <br>
+                        <li>Database - A database que será vinculada a conexão.</li>
+                        <br>
+                        <li>Database Userid - Login do usuário do banco.</li>
+                        <br>
+                        <li>Database Password - Senha do usuário do banco.</li>
+                    </ol>
+                    <br>
+                    <li>Feito os passos acima, sua conexão está feita! bastando agora realizar os comandos SQL que desejar.</li>
+                </ol>
         </ul>
     </body>
 </html>
