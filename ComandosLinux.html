@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+
+<html lang="pt-br">
+    <head>
+        <meta charset="utf-8">
+        <title>Primeiros Passos DB2</title>
+        <meta name="description" content="Este é um site referênte à estudos de DB2">
+    </head>
+    
+    <body>
+        <h1>Primeiros Passos - DB2</h1>
+        <p>As primeiras coisas que se fazem em um banco zerado, são criações de instâncias, bancos e tabelas, ou seja, comandos de DDL básicos. Neste momento, serão exibidos os principais comandos para o inicio em um banco DB2, lembre-se que tais comandos devem ser realizados via Linux em seu bash:</p>
+        <ul>
+            <li><strong>Criação de instância</strong></li>
+                <p>A intância, ou Servidor, será o bloco onde as bases serão inseridas, ou seja, onde os bancos estarão localizados. Há a possíbilidade de se criar inúmeras instâncias (desde que o armazenamento da máquina suporte) e por sua vez, inserir quantas bases quiser dentro de cada instância. Para a criação de uma instância, o comando abaixo é dado no shell:</p>
+                <pre>
+            <strong>./db2icrt -u </strong><i>instância</i>
+                </pre>
+                <p>Feito isso, a instância estará criada no DB2, precisando ser startada sempre que feito algum comando dentro dela, independente de qual seja.</p>
+            <li><strong>Startando/Finalizando instância</strong></li>
+                <p>Como dito anteriormente, sempre que quiser fazer algum comando em algum banco, será preciso logar em sua intância e starta-la, pois sem isso, nenhum comando será entendido pelo Linux. Além disso, é recomendado para-la ao final das tarefas, para que a mesma não fique vulnerável a problemas. Tais comandos são realizados por:</p>
+                <pre>
+            <strong>db2start</strong> ou <strong>db2stop</strong>
+                </pre>
+            <li><strong>Conectando-se a uma base</strong></li>
+                <p>Normalmente, para se fazer comandos em uma tabela, desde consultas a alterações ou até mesmo a criação de scripts que de alguma forma manipulem uma tabela, o Linux deverá conectar-se a base em que essa tabela está inserida, de forma que o DB2 entenda. Para isso, é dado um comando de conexão na base antes de qualquer manipulação (lembrando que isto é apenas necessário em ambiente Linux).</p>
+                <pre>
+            <strong>db2 connect to</strong> <i>base</i>
+                </pre>
+            <li><strong>Listagem das bases</strong></li>
+                <p>Outro comando que pode ser muito importante e de grande ajuda, é a listagem de quais são as bases presentes na instância que o usuário está logado. Mesmo que este comando possa ser dado a partir de DMV's via SQL, no Linux isso não é possível, necessitando do comando abaixo:</p>
+                <pre>
+            <strong>db2 list db directory</strong>
+                </pre>
+        </ul>
+    </body>
+</html>
+
+
