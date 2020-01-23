@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+
+<html lang="pt-br">
+    <head>
+        <meta charset="utf-8">
+        <title>Gerência de Dados -  DB2</title>
+        <meta name="description" content="Este é um site referênte à estudos de DB2">
+    </head>
+    
+    <body>
+        <h1>Gerência de Dados -  DB2</h1>
+        <p>No DB2, as tablespaces e bufferpools são conceitos extremamente importantes, onde por padrão, possuem tamanhos de dados "baixos" com 4k de capacidade. Dessa forma, recomenda-se a criação de bufferpool e tablespaces do usuário com maiores capacidades. Para isso, segue-se uma lógica, onde:</p>
+        <ol>
+            <li>Cria-se um buferpool com boa capacidade (em torno de 8k);</li>
+            <br>
+            <li>Cria-se uma tablespace inserida no bufferpool criado;</li>
+            <br>
+            <li>Cria-se as tabelas na tablespace criada.</li>
+        </ol>
+        <li><strong>Bufferpools</strong></li>
+            <p>Ou conjunto de de buffers, é uma área de memória principal que foi alocada pelo SGBD. Além disso, possui o objetivo de armanzenar em cache's, os dados da tabela e do índice à medida que são lidos no disco. Cada database no DB2 deve possuir um bufferpool padrão, chamado de <strong>IBMDEFAlTBP</strong>, assim como novos bufferpool's podem ser criados através do comando <i><strong>create bufferpool</strong></i>, além de altera-lo (<i>alter</i>) ou exclui-lo (<i>drop</i>).</p>
+            <pre>
+        <strong>db2 create bufferpool</strong> <i>nome</i> <strong>size</strong> <i>qtde pagina</i> <strong>pagesize</strong> <i>tamanho</i>
+            </pre>
+            <p>O SGBD usa do bufferpool para aplicar edições, modificações e exclusões dos registros do banco de dados. Porém, alguns aspectos devem ser analisados, entre eles:</p>
+            <ul>
+                <li>Para criar um bufferpool, é necessário que se indique o nome e o tamanho do mesmo;</li>
+                <li>O tamanho dos bufferpools podem ter impacto no desenvolvimento do bando (exigindo uma análise);</li>
+                <li>Para a realização da criação de um bufferpool, é necessário que a database esteja conectada.</li>
+            </ul>
+        <hr>
+        <li><strong>Tablespaces</strong></li>
+            <p>São a interface entre os dados lógicos (tables, views) e os dados físicos (datafiles, contêiners). As tabelas do banco de dados podem ser exibidas através do comando <strong>db2 list tablespaces show detail</strong>. Dessa forma, todas as tablespaces de determinado banco de dados, serão listadas, além dos dados da mesma (nome, definição, etc). Novas tablespaces podem ser criadas através do comando <i>create</i>:</p>
+            <pre>
+        <strong>db2 create tablespace</strong> <i>nome</i> <strong>pagesize</strong> <i>tamanho=bufferpool</i> <strong>bufferpool</strong> <i>nome do buffer</i>
+            </pre>
+            <p>Todos os dados estão armazenados em um número de tablespaces, onde uma tablespace não pode ter mais de um banco de dados. Além disso, as tablespaces são dividades em 5 agrupamentos, sendo eles:</p>
+            <ul>
+                <li><strong>Catálogo</strong></li>
+                    <p>Há somente um por database, chamado de <strong>syscatspace</strong>, o qual mantém as tabelas de catálogo do sistema.</p>
+                <li><strong>Regular</strong></li>
+                    <p>Armazena todos os dados permanentes, como tabelas e seus índices. Além de um banco poder ter várias tablespaces regulares.</p>
+                <li><strong>Grande</strong></li>
+                    <p>Assim como a regular, a tablespace grande armazena tabelas e índices permanentes, com a diferença de que suporta tabelas com maiores números de registros (mais de 225 linhas por páginas).</p>
+                <li><strong>Temp do sistema</strong></li>
+                    <p>Armazena dados temporais durante as operações de SQL, como JOINS, reorganização (ORDER BY) e etc. É preciso que exista ao menos uma tablespace temporária e por isso, o DB2 cria a <strong>tempspace</strong> por padrão.</p>
+                <li><strong>Temp por usuário</strong></li>
+                    <p>Possuem o mesmo conceito da temporária do sistema, porém são criadas opcionalmente e especificamente por usuários.</p>
+            </ul>
+        <hr>
+        <li><strong>Dados físicos</strong></li>
+            <p>Os dados físicos, como mencionado anteriormente, são necessários para o entendimento de tablespaces, sendo eles:</p>
+            <ul>
+                <li><strong>Conteiners</strong></li>
+                    <p>Dispositivo de armazenamento de dados, podendo ter dois tipos (DMS e SMS), sendo o DMS gerenciado pelo banco de dados e o SMS gerenciado pelo sistema.</p>
+                <li><strong>Página de dados</strong></li>
+                    <p>Unidade de espaço em disco, onde armazena-se registros.</p>
+            </ul>
+        <p>Em resumo, para que o DB2 armazene os dados de uma tabela, é criado um <strong>vínculo/interface entre a tabela e os recursos físicos</strong>. Quem faz essa interface, são as chamadas <strong>tablespaces</strong>, que se associam a recursos da memória (<strong>bufferpools</strong>) e recursos do disco (<strong>conteiners</strong>). Onde o bufferpool reserva espaços na memória, para que os dados sejam trabalhados durante as execuções do DB2. Já os conteiners, alocam espalo no disco (na forma de arquivos ou dispositivos) e armazena as páginas de dados, guardando os dados da tabela.</p>
+    </body>
+</html>
