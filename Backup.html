@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+
+<html lang="pt-br">
+    <head>
+        <meta charset="utf-8">
+        <title>Backup - DB2</title>
+        <meta name="description" content="Este é um site referênte à estudos de DB2">
+    </head>
+    <body>
+        <h1>Backup - DB2</h1>
+        <p>Neste artigo, será estudado como realizar um backup em ambiente DB2, sendo algo essêncial na vida de um DBA e da empresa em que se está inserido, afinal, caso ocorra uma situação em que os dados sejam perdidos (o que há boas chances de acontecer) ou algo do tipo, até mesmo para análises históricas, se não haver um backup desses dados, todo o banco será perdido. Diante dessas situações, é necessário o entendimento de alguns conceitos em conjunto ao backup, sendo eles:</p>
+        <ul>
+            <li><strong>Log Transacional</strong></li>
+                <p>O log transacioal está presente em todos os SGBD's, atuando como uma fonte de dados em que todas as operações de alteração no banco (<i>insert,update e delete</i>) serão gravadas neste log, ou seja, é basicamente como um armazenador de ações que foram realizadas no banco. Dessa forma, o log transacional aoia diretamente em situações de <strong>recovery</strong> e <strong>rollback</strong> de bases e transações.</p>
+                <p>Este mecanismo possui dois modos de operações (circular e ,i>log archive), que serão discutidos mais a frente.</p>
+            <li><strong>Recovery</strong></li>
+                <p>O recovery é uma forma de recuperação dos dados que foram salvados. Existem 3 tipos de recovery, sendo eles:</p>
+                <ul>
+                    <li><strong>Crash Recovery</strong></li>
+                        <p>Sendo uma recuperação por default, que ocorre no database a partir da leitura dos logs transacionais. Sendo executado quando o DB2 encerra de forma bruta devido algum erro, fanta de energia, crash do S.O. ou algo do tipo.</p>
+                    <li><strong>Restore Recovery</strong></li>
+                        <p>É o processo em que é realizada a recuperação integral de uma imagem de backup de uma base ou tablespace. Onde os dados são recuperados até o momento em que a imagem de backup foi realizada.</p>
+                    <li><strong>Restore Recovery</strong></li>
+                        <p>Processo em que é reaçozada a recuperação integral de uma imagem de backup, somando aplicação de logs transacionais posteriores à data em que a imagem foi gerada.</p>
+                </ul>
+            <hr>
+            <li><strong>Modos de execução de backup</strong></li>
+                <p>Há dois modos de executaar um backup, online ou offline, onde o primeiro modo permite que a base permaneça disponpivel para os usuários e aplicações, não gerando interrupção no serviço de banco. Para que seja possível a execução de backup online, é preciso habilitar os logs transacionais para o modo <i>log archive</i>.</p>
+                <p>Já o segundo modo, a base ficará indisponível completamente até que a realização do backup seja concluída. </p>
+            <hr>
+            <li><strong>Tipos de imagens de backup</strong></li>
+                <p>Além dos modos de execução. há também os tipos de imagens de um determinado backup. Sendo possível gerar 3 tipos de imagens:</p>
+                <ol>
+                    <strong><li>Backup Full</li></strong>
+                        <p>Imagem de backup que contèm todo conteúdo do database, todos os dados e objetos. Se a base tem 50Gb, a imagem terá praticamente o mesmo tamanho.</p>
+                        <br>
+                    <strong><li>Backup Incremental</li></strong>
+                        <p>Imagem de backup que contém apenas os dados e objetos modificados a partir do último backup full.</p>
+                        <br>
+                    <strong><li>Backup Delta</li></strong>
+                        <p>Imagem de backup que contém apenas os dados modificados a partir do último backup realizado.</p>
+                </ol>
+            <hr>
+            <li><strong>Realização do backup</strong></li>
+                <p>Com os conceitos sobre backup entendidos, iremos seguir para a parte prática dos códigos e scripts usados para se realizar um backup. Para isso, primeiro deve ser feita a configuração do log archive, habilitando-o na base que se está inserido, o que possibilitará  a execução de backups online e sem indisponibilidade do banco.</p>
+                <pre>
+            <strong>mkdir -p</strong> /databases/<i>base</i>/archlogs
+            
+            <strong>db2 update db cfg for</strong> <i>base</i> <strong>using logarchmenth1 disk:</strong>/databases/<i>base</i>/archlogs
+            
+            <strong>db2 backup DB</strong> <i>base</i> <strong>TO</strong> /dev/null
+                </pre>
+            <p>Ou seja, foi dado que a base X possuirá archive logs habilitado e fará o envio desses logs para o diretório <strong>archlogs</strong>. Feito isso, a base estará apta a realizar backup online, o que é realizado pelo comando abaixo:</p>
+            <pre>
+        <strong>db2 backup DB</strong> <i>base</i> <strong>online to</strong> /databases/<i>base</i>/backups <strong>include logs</strong>
+            </pre>
+            <p>O comando acima iniciará o processo de backup online, sem erar indisponibilidade no ambiente, para o diretório <strong>backups</strong> e ao final, incluirá os logs necessários para realizar o restore da imagem.</p>
+            <p>Esses logs são justamente os logs transacionais que ocorreram enquanto o backup era executado, e servem para que os dados mantenham-se íntegros no momento de um restore posterior.</p>
+        </ul>
+        <hr>
+        <li><strong>Monitoração do backup</strong></li>
+            <p>Para monitorar a execução do backup, pode-se utilizar do comando <strong>db2top</strong> ou o comando <strong>db2 list utilities show detail</strong></p>
+    </body>
+</html>
