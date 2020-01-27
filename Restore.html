@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+
+<html lang="pt-br">
+    <head>
+        <meta charset="utf-8">
+        <title>Restore - DB2</title>
+        <meta name="description" content="Este é um site referênte à estudos de DB2">
+    </head>
+    
+    <body>
+        <h1>Restore - DB2</h1>
+        <p>O restore é a ação de <strong>recuperação</strong> de algum dado, onde nesse caso, será abordado como a restauração dos dados de backup realizados por uma banco de dados. Dessa forma, em uma situação em que o banco seja crashado ou até dropado, tendo-se o backup do banco, é possível recuperar todos os seus dados desde aquela última atualização através do restore e assim fazer o banco voltar a sua rotina. A</p>
+        <ul>
+            <li><strong>Restore de imagens de backup (OFFLINE)</strong></li>
+                <p>No processo de recuperação de backup offline, não é necessário possuir logs transacionais para a restauração, uma vez que o backup foi feito com o database sem atividades ocorrendo em paraelo, ou seja, estando offline. Com isto, este processo dever ser mais simples, uma vez que não é necessário o processo de aplicação de logs, processo chamado de <strong>rollforward</strong></p>
+                <p>Em contrapartida, a recuperação das imagens de forma offline permite entregar a base com a exta posição de dados de quando o backup foi realizado, ou seja, se o backup foi realizado as 14h, e o processo de restore será realizado às 22h, os dados que estão neste intervalo de horas, será <strong>perdido</strong>.</p>
+            <li><strong>Restore de imagens de backup (ONLINE)</strong></li>
+                <p>A recuperação de imagens de backup online permite a recuperação dos dados de forma mais comleta, ou em outras palavras, sem a perda de dados da situação apresentada no modo offline. Porém, por isto ser possível, todos os logs transacionais precisam estar disponpiveis no momento do restore. Porém, há situações em que os logs foram perdidos, neste caso, depende bastante se será possível realizar o processo de restore, onde:</p>
+                <ul>
+                    <li><strong>Sim</strong> - Se a imagem de backup foi gerada com a opção <strong>include logs</strong>, sendo possível recuperar a base semelhante a um backup offline, com a posição dos dados no momento em que o backup foi realizado, extraindo os logs com a opção <strong>logtarget</strong> e utilizando-as no processo de <strong>rollforward</strong>.</li>
+                    <li><strong>Não</strong> - Se a imagem de backup foi gerada sem a opção <strong>include logs</strong> e os logs não estão disponpiveis, tornando falho o processo de recuperação da base, além de tornar a imagem de backup inutilizável.</li>
+                </ul>
+            <hr>
+            <li><strong>Rollforward</strong></li>
+                <p>O processo de aplicação dos logs transacionais é um passo adicional, e também obrigatório à atividade de restore de imagens de backup online, procedimento esse que é realizado logo após uma ação de restore, permitindo a perda zero de dados em um momento de desasrte (desde que os logs estejam disponíveis).</p>
+                <p>Com isto, é extremamente recomendado, que os logs configurados nos parâmetros de logarchment sejam sempre copiados para locais seguros e preferencialmente em discos ou áreas separadas de onde são originadas. Para garantia de não perda dos dados, além dos archive logs disponpiveis no momento do restore, também são necessários os logs ativos disponíveis, além da recomendação da configuração dos logs ativos sempre para um disco separado.</p>
+            <hr>
+            <li><strong>Realização do restore</strong></li>
+                <ol>
+                    <li>Restauração de backup offline</li>
+                        <p>Antes é preciso levantar algumas informações necessárias para o preenchimento do comando de restore, sendo preciso:</p>
+                        <ul>
+                            <li>Informação dos logs aivos e espelhados (mirrorlogs)</li>
+                                <pre>
+        <strong>db2ckbkp -H</strong> <i>base</i>.0.db2inst1.DDBPART000.20180521174659.001 <strong>| grep LogPath</strong>
+                            
+        <strong>db2ckbkp -H</strong> <i>base</i>.0.db2inst1.DDBPART000.20180521174659.001 <strong>| grep mirrorLogFilePath</strong>
+                                </pre>
+                            <li>Informações dos storages groups/paths</li>
+                                <pre>
+        <strong>db2ckbkp -S</strong> TESTDB01.0.db2inst1.DBPART000.20180521174659.001 <strong>| more</strong> 
+                                </pre>
+                            <p>Ao obter essas informações, é possível montar o comando de restore, de acordo com as informações coletadas acima.</p>
+                            <br>
+                            <li>Criação dos diretórios necessários</li>
+                                <pre>
+        <strong> mkdir -p</strong> /databases/TESTDB01/STG/IBMSTOGROUP/data001
+        <strong> mkdir -p</strong> /databases/TESTDB01/STG/IBMSTOGROUP/data002
+        <strong> mkdir -p</strong> /databases/TESTDB01/STG/SG_FASTSSD/data001
+        <strong> mkdir -p</strong> /databases/TESTDB01/STG/SG_FASTSSD/data002
+        <strong> mkdir -p</strong> /databases/TESTDB01/STG/SG_HISTORY/data001
+        <strong> mkdir -p</strong> /databases/TESTDB01/logs
+        <strong> mkdir -p</strong> /databases/TESTDB01/dbpath
+        <strong> chown -R</strong> db2inst1:db2iadm1 /databases/TESTDB01
+                                </pre>
+                            <li><strong>Restore da base</strong></li>
+                            <pre>
+        <strong> db2 restore db</strong> <i>base</i> <strong>from</strong> /backups/<i>base</i>/offline <strong>on</strong> /databases/<i>base</i>/STG/IBMSTOGROUP/data001, /databases/<i>base</i>/STG/IBMSTOGROUP/data002 <strong>dbpath on</strong> /databases/<i>base</i>
+        /dbpath <strong>NEWLOGPATH</strong> /databases/<i>base</i>/logs <strong>redirect</strong>
+        <strong> db2 connect to</strong> <i>base</i>
+        <strong> db2 set stogroup paths for IBMSTOGROUP ON</strong> /databases/<i>base</i>/STG/IBMSTOGROUP/data001, /databases/<i>base</i>/STG/IBMSTOGROUP/data002
+        <strong> db2 set stogroup paths for SG_FASTSSD ON</strong> /databases/<i>base</i>/STG/SG_FASTSSD/data002, /databases/<i>base</i>/STG/SG_FASTSSD/data001
+        <strong> db2 set stogroup paths for SG_HISTORY ON</strong> /databases/<i>base</i>/STG/SG_HISTORY/data001
+        <strong> db2 restore db</strong> <i>base</i> <strong>continue</strong>
+        <strong> db2 activate db</strong> <i>base</i>
+        <strong> db2 connect to</strong> <i>base</i>
+                            </pre>
+                            <p>Perceba que nos processos acima, foram passados os diretórios de logs, storage groups e demais paths (os quais não são padronizados, logo verifique-os em sua própria máquina) e finalemnte realizar o comando de restore, com isto, é mantido todos os diretórios e configurações do database em questão nos caminhos originais.</p>
+                        </ul> 
+                    <li>Restauração de backup online</li>
+                        <p>Para ativar a repetição de conteúdo, vamos considerar o mesmo ambiente utilizado no exemplo acima, com a diferença de que uma imagem de backup online será usada e adicionalmente será preciso realizar um processo de <i>rollforward</i>.</p>
+                        <pre>
+        <strong> db2 restore db</strong> <i>base</i> <strong>from</strong> /backups/<i>base</i>/online <strong>on</strong> /databases/<i>base</i>/STG/IBMSTOGROUP/data001, /databases/<i>base</i>/STG/IBMSTOGROUP/data002 <strong>dbpath on</strong> /databases/<i>base</i>/dbpath
+        <strong>LOGTARGET</strong> /databases/<i>base</i>/logs <strong>NEWLOGPATH</strong> /databases/<i>base</i>/logs <strong>redirect</strong>
+        <strong> db2 connect to</strong> <i>base</i>
+        <strong> db2 set stogroup paths for IBMSTOGROUP ON</strong> /databases/<i>base</i>/STG/IBMSTOGROUP/data001, /databases/<i>base</i>/STG/IBMSTOGROUP/data002
+        <strong> db2 set stogroup paths for SG_FASTSSD ON</strong> /databases/<i>base</i>/STG/SG_FASTSSD/data002, /databases/<i>base</i>/STG/SG_FASTSSD/data001
+        <strong> db2 set stogroup paths for SG_HISTORY ON</strong> /databases/<i>base</i>/STG/SG_HISTORY/data001
+        <strong> db2 restore db</strong> <i>base</i> <strong>continue</strong>
+        <strong> db2 rollforward db</strong>strong> <i>base</i> <strong>to end of logs and complete</strong>
+        <strong> db2 activate db</strong> <i>base</i> 
+        <strong> db2 connect to</strong> <i>base</i> 
+
+
+                        </pre>
+                </ol>
+        </ul>
+    </body>
+</html>
