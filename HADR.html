@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+
+<html lang="pt-br">
+    <head>
+        <meta charset="utf-8">
+        <title>HADR - DB2</title>
+        <meta name="description" content="Este é um site referênte à estudos de DB2">
+    </head>
+    
+    <body>
+        <h1>HADR - DB2</h1>
+            <p>O HADR, ou High Availability Disaster Recovery, é um método de replicação de bases que fornece soluções de disponibilidade para ambas falhas, parcial e/ou completa. Com o HADR, dados de uma base primária são replicados para uma base em standby, o que é essêncial a um clone da primária. A replicação é realizada através do envio de logs por uma conexão TCP/IP, em resumo geral e tradução litereal, o HADR é uma forma de recuperação de desastres de alta disponibilidade para bases DB2.</p>
+            <p>Dessa forma, há uma proteção contra a perda de dados replicando alterações de dados de uma banco de origem (primário) para outros bancos (standby), suportando até três servidores remotos em standby. Essas falhas podem ocorrer por falhas de hardware, rede ou software e em uma situação onde o HADR não é presente, seria exigida a reinicialização do servidor do sistema que contém o banco, o que levaria um tempo imprevisível para a reinicialização tanto do banco como do servidor (Lembrando que em uma situação empresarial, todo tempo é essêncial para o funcionamento).</p>
+            <p>Já com o HADR, esses dados serão migrados a um outro servidor em mommentos de crise em que os servidores precisarem ser realizados (que por sinal com o auxilio de HADR, levaria segundos), ou seja, seria possível redirecionar os clientes qye usam do banco primário para um outro banco usando uma rota automática. Portanto, situações de <strong>segurança na cópia dos dados, disponibilidade de um ambiente com alta carga de atividades de forma rápida e replicação de bases</strong> são alguns dos principais benefícios gerados pela implementação de um HADR.</p>
+            <ul>
+                <li><strong>Necessidades</strong></li>
+                    <br>
+                    <ol>
+                        <li>Um servidor (físico ou virtual) secundário, destinado a base que receberá as cópias do ambiente primário. O qual, por atuar uma uma base standby, precisa que a versão do S.O. seja a mesma do primário, assim como a versão e fixpack do DB2.</li>
+                        <br>
+                        <li>Backup full/online da base primária e transferência da imagem de backup para o servidor secundário.</li>
+                        <br>
+                        <li>Restore da imagem de backup, a qual precisa estar com status de <i>rollforward pending</i></li>
+                        <br>
+                        <li>Configuração dos parâmetros do HADR nos servidores primários e secundários e inicialização do mesmo na base.</li>
+                    </ol>
+                <p>Dessa forma, o procedimento é bem simples, porém algumas objeções e cuidados devem ser tomados, os quais não são obrigatórios mas necessitam de uma certa atenção, uma vez que caso não sejam resaltados, podem apresentar futuros problemas para todo o ambiente, sendo essas boas ações:</p>
+                <ol>
+                    <li>Destinação de uma placa de rede específica para o tráfego dos dados do HADR (entre os servidores primários e secundários), pois caso haja uma interferência de usuários e terceiros dados, uma concorrência das atividades pode ser gerada e afetar o tráfego.</li>
+                    <br>
+                    <li>Em utilização do HADR, não usar de atividades que não são logadas (como operações de load), pois esse tipo de operação não é replicada. Logo, recomenda-se a habilitação do parâmetro <strong>blocknonlogged</strong>.</li>
+                    <br>
+                    <li>Recomenda-se que o parâmetro <strong>logindexbuild</strong> seja configurado como <i><strong>on</strong></i>, pois isto faz com que uma operação de build de um índice seja inteiramente logada e replicada para o servidor secundário.</li>
+                    <br>
+                    <li>Operações de backup no abiente secundário não são permitidas.</li>
+                    <br>
+                    <li>Recomendação de que os paths/diretórios utilizados para o banco (diretórios das tablespaces/conteiners, logs, archive logs e etc) sejam mantidos idênticos ao ambiente primário.</li>
+                    <br>
+                    <li>A base precisa possuir o mesmo nome e operação de <i>redirect restore</i> não é permitido no ambiente secundário.</li>
+                </ol>
+                <p>Estes são algumas das observações e boas práticas na implementação do HADR. Para mais informações, acesse o site do link da IBM <a href="https://www.ibm.com/support/knowledgecenter/en/SSEPGG_11.1.0/com.ibm.db2.luw.admin.ha.doc/doc/c0011760.html"> HADR - IBM</a> </p>
+                <li><strong>Implementação prática do HADR</strong></li>
+                    <ul>
+                        <li><strong>Configuração incial da base</strong></li>
+                            <p> É obrigatório que a base seja passível de backup online, ou seja, precisa de archive logs habilitado no ambiente, portanto, também é necessário um backup offline após essa ativação.</p>
+                            <pre>
+        <strong>update db cfg dor</strong> <i>base</i> <strong>using BLOCKNONLOGGED YES</strong>
+        <strong>update db cfg dor</strong> <i>base</i> <strong>using LOGARCHMETH1</strong> DIS:/databases/<i>base</i>/archlogs
+        <strong>update db cfg dor</strong> <i>base</i> <strong>using LOGINDEXBUILD  YES</strong>
+                            </pre>
+                        <p>Após aplicar os parâmetros acima, é necessário o stop/start do DB2 e realizção do backup da base por ativação do mecanismo de log archive</p>
+                        <pre>
+        <strong>db2stop force
+        db2 terminate
+        db2start
+        db2 backup db</strong> <i>base</i> <strong>to</strong> /dev/null
+                        </pre>
+                        <li><strong>Configuração do HADR no servidor primário</strong></li>
+                            <p>Para colocar o HADR em operação, serão necessárias as configurações de 6 parâmetros:</p>
+                            <pre>
+        <strong>update db cfg for</strong> <i>base</i> <strong>using HADR_LOCAL_HOST hadt01</strong>
+        <strong>update db cfg for</strong> <i>base</i> <strong>using HADR_LOCAL_SVC  45000</strong>
+        <strong>update db cfg for</strong> <i>base</i> <strong>using HADR_REMOTE_HOST  hadt02</strong>
+        <strong>update db cfg for</strong> <i>base</i> <strong>using HADR_REMOTE_SVC  45000</strong>
+        <strong>update db cfg for</strong> <i>base</i> <strong>using HADR_REMOTE_INST  db2inst1</strong>
+        <strong>update db cfg for</strong> <i>base</i> <strong>using HADR_TARGET_LIST  hadr02:45000</strong>
+                            </pre>
+                            <p>Para explicar o ocorrido, existem dois serviodres (hadr01 e 02) os quais estão usando da porta 45000 para comunicação e funcionamento do HADR, a instância remota do servidor secundário é db2inst1.</p>
+                            <p>Atenção especial para o parâmetro <strong>HADR_TARGET_LIST</strong> o qual define o hostname e porta de comunicação da instância sencundária. Pois há a possibilidade de ambientes onde existem mais de um servidor secundário, este parâmetro torna-se obrigatório e contém a lista dos servidores que atuarão como secundário.</p>
+                            <p>Realizada a configuração dos parâmetros, será preciso realizar um backup full/online na base do servidor primário, que será utilizado para a criação do servidor secundário e transferir a imagem gerada para o servidor secundário.</p>
+                            <pre>
+            <strong>backup db</strong> <i>base</i> <strong>online to</strong> /tmp
+            
+            scp <i>base</i>.0.db2inst1.DBPART000.20180405134104.001 db2inst1@hadr02:/tmp
+                            </pre>
+                        <li><strong>Criação do servidor secundário</strong></li>
+                            <p>Tendo a base primária criada, configurada, com backup gerado e transferido para o servidor secundário, segue-se para criação da base secundária (standby), realizado primeiro pelo <strong>restore</strong></p>
+                            <pre>
+            <strong>restore db</strong> <i>base</i> <strong>from</strong> /tmp <strong>DBPATH on</strong> /databases/<i>base</i>/dbpath
+                            </pre>
+                            <p>Em seguida, após ter sido realizado o restore, será necessária a configuração dos parâmetros do HADR</p>
+                            <pre>
+            <strong>update db cfg for</strong> <i>base</i> <strong>using HADR_LOCAL_HOST hadr02.example.com</strong>
+            <strong>update db cfg for</strong> <i>base</i> <strong>using HADR_REMOTE_HOST hadr01.example.com</strong>
+            <strong>update db cfg for</strong> <i>base</i> <strong>using HADR_TARGET_LIST hadr01:45000</strong>
+                            </pre>
+                            <p>Feito isso, o HADR está configurado, faltando apenas ativá-lo e ter o ambiente secundário replicado. Com ambas as bases configuradas, tanta a primária como a secundária, o processo de ativação do HADR recomenda-se ativar primeiramente o secundário e em seguida o primário.</p>
+                            <pre>
+            --> Executar no secundário
+            <strong>start HADR on db </strong><i>base</i> <strong>as standby</strong>
+            
+            --> Executar no primário
+            <strong>start HADR on db </strong><i>base</i> <strong>as primary</strong>
+                            </pre>
+                            <p>Feito isso, o HADR está em operação e caso todas as configurações tenham sido corretamente seguidas, uma mensagem de que o HADR foi iniciado com sucesso será exibida ("<i>DB20000I The START HADR ON DATABASE command completed successfully.</i>").</p>
+                        <li><strong>Verificção do status de operação do HADR</strong></li>
+                            <p>Para isso, o processo pode ser feito de diversas maneiras, como pelo utilitário do db2top, querys e etc. Neste exemplo será usado o comando <strong>db2pd -d</strong> <i>base</i> <strong>-hadr</strong></p>
+                    </ul>
+            </ul>
+    </body>
+</html>
